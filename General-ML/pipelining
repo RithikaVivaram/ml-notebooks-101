@@ -1,0 +1,54 @@
+In machine learning, a pipeline chains multiple data transformations and a final estimator into a single object. It streamlines the process of building and deploying models. It helps to automate the workflow, prevent data leakage, and ensure reproducibility. The code that you provided in your notebook is an example of this.
+Pipelines are constructed by specifying a sequence of steps. Each step, except the last, must be a transformer. The last step can be any type of estimator, e.g. a regressor or a classifier. Intermediate steps are transformers and the final step is an estimator. When the pipeline is fitted, data is passed through the sequence of steps, with the output of each step becoming the input of the next. The final estimator is then trained on the transformed data.
+Here are some benefits of using pipelines in machine learning:
+Automation: Pipelines automate the process of building and deploying machine learning models, reducing the need for manual steps.
+Data Leakage Prevention: Pipelines help prevent data leakage, which can occur when information from the test set is used to train the model.
+Reproducibility: Pipelines make it easy to reproduce the results of a machine learning experiment, ensuring consistency.
+Code Organization: Pipelines help to organize and structure your machine learning code.
+Here is the usage of Pipeline in Titanic data Set
+//CODE
+import pandas as pd
+import numpy as np
+# Import train_test_split from the correct submodule
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+df = pd.read_csv('titanic.csv')
+df.drop(columns=['PassengerId', 'Name', 'Ticket', 'Cabin'], inplace=True)
+X_train, X_test, y_train, y_test = train_test_split(df.drop(columns=['Survived']), df['Survived'], test_size=0.2, random_state=42)
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, MinMaxScaler
+from sklearn.feature_selection import SelectKBest, chi2  # For feature selection
+from sklearn.tree import DecisionTreeClassifier  # For decision tree classifier
+from sklearn.pipeline import Pipeline  # For creating pipelines
+trf1 = ColumnTransformer([
+    ('impute_age', SimpleImputer(), [2]),
+    ('impute_embarked', SimpleImputer(strategy='most_frequent'), [6])
+], remainder='passthrough')
+
+# Replace 'sparse' with 'sparse_output' in OneHotEncoder
+trf2 = ColumnTransformer([
+    ('ohe_sex_embarked', OneHotEncoder(sparse_output=False, drop='first',handle_unknown='ignore'), [1, 6]),
+], remainder='passthrough')
+
+# Assuming MinMaxScalerScaler was a typo and you intended to use MinMaxScaler
+trf3 = ColumnTransformer([
+    ('scale', MinMaxScaler(), slice(0, 8)) # Changed MinMaxScalerScaler to MinMaxScaler
+])
+
+trf4 = SelectKBest(score_func=chi2, k=5)
+trf5 = DecisionTreeClassifier()
+pipe = Pipeline([
+    ('trf1', trf1),
+    ('trf2', trf2),
+    ('trf3', trf3),
+    ('trf4', trf4),
+    ('trf5', trf5)
+])
+pipe.fit(X_train, y_train)
+from sklearn import set_config
+set_config(display='diagram')
+pipe.fit(X_train, y_train)
+#output 
+![alt text](<Screenshot 2024-10-30 231816-1.png>)
